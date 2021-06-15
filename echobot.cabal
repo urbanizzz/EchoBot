@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 23003bb6c523128e3561e577422f436e5cc1084dc4c93db1df31a436eacd7aed
+-- hash: 50fb17bf70d7a9c8528937901f11c6bbca96d5b9bd2b54b63708f349cd3e67a5
 
 name:           echobot
 version:        0.1.0.0
@@ -27,6 +27,8 @@ source-repository head
 
 library
   exposed-modules:
+      Bot
+      BotTypes
       Logger
   other-modules:
       Paths_echobot
@@ -34,8 +36,12 @@ library
       src
   default-extensions: OverloadedStrings RecordWildCards
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , containers
     , fast-logger
+    , scientific
     , text
     , yaml
   default-language: Haskell2010
@@ -47,9 +53,13 @@ executable echobot-exe
   default-extensions: OverloadedStrings RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , containers
     , echobot
     , fast-logger
+    , scientific
     , text
     , yaml
   if false
@@ -67,9 +77,13 @@ test-suite echobot-test
   default-extensions: OverloadedStrings RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , containers
     , echobot
     , fast-logger
+    , scientific
     , text
     , yaml
   default-language: Haskell2010

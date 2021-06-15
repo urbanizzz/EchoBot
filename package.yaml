@@ -14,8 +14,12 @@ description:         Please see the README on GitHub at <https://github.com/urba
 
 dependencies:
   - base >= 4.7 && < 5
-  - text
+  - aeson
+  - bytestring
+  - containers
   - fast-logger
+  - scientific
+  - text
   - yaml
 
 default-extensions:
