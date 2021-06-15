@@ -1,0 +1,11 @@
+logger:
+  logLevel: debug
+bot:
+  # cl - command line, vk - vkontakte, tg - telegram
+  botType: cl
+  botToken: "none"
+  repeatDefault: 3
+  repeatMaxNumber: 5
+  repeatQuestion: "Enter the number of repetitions"
+  about: "echobot - simple echo bot.\n/help to get this help\n/repeat to set the number of repetition"
+  unknownCommandMessage: "Unknown command: enter /help to get help"
