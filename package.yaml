@@ -13,7 +13,14 @@ extra-source-files:
 description:         Please see the README on GitHub at <https://github.com/urbanizzz/echobot#readme>
 
 dependencies:
-- base >= 4.7 && < 5
+  - base >= 4.7 && < 5
+  - text
+  - fast-logger
+  - yaml
+
+default-extensions:
+  - OverloadedStrings
+  - RecordWildCards
 
 library:
   source-dirs: src
