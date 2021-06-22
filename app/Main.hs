@@ -42,8 +42,10 @@ main = do
   case args of
     [configPath] -> run configPath
     _ -> do
-      IO.hPutStrLn IO.stderr $ "Usage: " ++ progName ++ " <config_path>"
-      exitFailure
+      run "./echobot.yaml"
+-- in production version uncomment 2 strings below and delete string above
+      -- IO.hPutStrLn IO.stderr $ "Usage: " ++ progName ++ " <config_path>"
+      -- exitFailure
 
 run :: FilePath -> IO ()
 run configPath = do

@@ -34,3 +34,12 @@ instance A.FromJSON BotToken where
 instance A.FromJSON RepeatNumber where
   parseJSON = A.withScientific "FromJSON Types.RepeatNumber" $ return . RepeatNumber . fromInteger . coefficient
 
+data Event  = HelpCommand EventEscort
+            | RepeatCommand EventEscort
+            | Message EventEscort
+
+data EventEscort = Escort
+  { userName    :: UserName
+  , userMessage :: UserMessage
+  }
+

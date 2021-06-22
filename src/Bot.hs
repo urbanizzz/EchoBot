@@ -49,12 +49,29 @@ instance A.FromJSON Config where
     <*> o A..:? "unknownCommandMessage"
 
 data Handle = Handle
-  { hConfig   :: Config
-  , hLogger   :: Logger.Handle
+  { hConfig       :: Config
+  , hLogger       :: Logger.Handle
+  , hBotCommand   :: BotCommand
+  }
+
+data BotCommand = BotCommand
+  { getMessage    :: IO Event
+  , sendMessage   :: EventEscort -> IO ()
+  , sendHelp      :: EventEscort -> A.Value -> IO ()
+  , getRepeat     :: EventEscort -> RepeatNumber -> A.Value -> IO RepeatNumber
   }
 
 withHandle :: Config -> Logger.Handle -> (Handle -> IO a) -> IO a
-withHandle config logger f = f $ Handle config logger
+withHandle config logger f = f $ Handle config logger (selectBotCommandsHandle botType)
+  where botType = case (cBotType config) of
+          Just btype  -> btype
+          Nothing     -> CL
+
+selectBotCommandsHandle :: BotType -> BotCommand
+selectBotCommandsHandle botType = case botType of
+  CL -> undefined
+  TG -> undefined
+  VK -> undefined
 
 run :: Handle -> IO ()
 run h = print "Bot is running"
