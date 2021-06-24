@@ -9,6 +9,9 @@ module Bot
 import qualified Data.Text                  as T
 import qualified Data.Aeson                 as A
 import qualified Logger
+import qualified ClBot                      as Cl
+import qualified TgBot                      as Tg
+import qualified VkBot                      as Vk
 
 import Control.Applicative        (Alternative (..))
 import BotTypes
@@ -69,9 +72,10 @@ withHandle config logger f = f $ Handle config logger (selectBotCommandsHandle b
 
 selectBotCommandsHandle :: BotType -> BotCommand
 selectBotCommandsHandle botType = case botType of
-  CL -> undefined
-  TG -> undefined
-  VK -> undefined
+  CL -> BotCommand Cl.getMessage Cl.sendMessage Cl.sendHelp Cl.getRepeat
+  TG -> BotCommand Tg.getMessage Tg.sendMessage Tg.sendHelp Tg.getRepeat
+  VK -> BotCommand Vk.getMessage Vk.sendMessage Vk.sendHelp Vk.getRepeat
+
 
 run :: Handle -> IO ()
 run h = print "Bot is running"
