@@ -5,8 +5,8 @@ module TgBot
   , getRepeat
   ) where
 
-import qualified  Data.Aeson                as A
-import qualified  Data.Text                 as T
+import qualified Data.Aeson                 as A
+import qualified Data.Text                  as T
 
 import BotTypes
   ( Event (..)
