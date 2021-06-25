@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a00e2edb623471bdc9eca7b4442dabf1ee88414be2989aea7d1f38627fc4c1b3
+-- hash: 9622cc648bc8e03208b1177545f02bc1f59a1c711f861ced67c4524bd1823dea
 
 name:           echobot
 version:        0.1.0.0
@@ -45,6 +45,7 @@ library
     , containers
     , extra
     , fast-logger
+    , mtl
     , scientific
     , text
     , yaml
@@ -64,6 +65,7 @@ executable echobot-exe
     , echobot
     , extra
     , fast-logger
+    , mtl
     , scientific
     , text
     , yaml
@@ -89,6 +91,7 @@ test-suite echobot-test
     , echobot
     , extra
     , fast-logger
+    , mtl
     , scientific
     , text
     , yaml

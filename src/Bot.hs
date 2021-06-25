@@ -8,12 +8,14 @@ module Bot
 
 import qualified Data.Text                  as T
 import qualified Data.Aeson                 as A
+import qualified Data.Map.Lazy              as M
 import qualified Logger
 import qualified ClBot                      as Cl
 import qualified TgBot                      as Tg
 import qualified VkBot                      as Vk
 
 import Control.Applicative        (Alternative (..))
+import Control.Monad.State
 import BotTypes
 
 data Config = Config
@@ -77,7 +79,32 @@ selectBotCommandsHandle botType = case botType of
   VK -> BotCommand Vk.getMessage Vk.sendMessage Vk.sendHelp Vk.getRepeat
 
 
+newState :: Environment
+newState = Environment $ UsersRepeat M.empty
+
 run :: Handle -> IO ()
-run h = print "Bot is running"
+run handle = do
+  (result, state) <- runStateT (mainCycle $ handle) $ newState
+  return ()
+
+mainCycle :: Handle -> StateT Environment IO ()
+mainCycle handle = forever $ do
+  event <- lift . getBotEvent $ handle
+  case event of
+    HelpCommand escort    -> execHelpCommand handle escort
+    RepeatCommand escort  -> execRepeatCommand handle escort
+    Message escort        -> repeatMessage handle escort
+
+getBotEvent :: Handle -> IO Event
+getBotEvent handle = undefined
+
+execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
+execHelpCommand handle event = undefined
+
+execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
+execRepeatCommand handle escort = undefined
+
+repeatMessage :: Handle -> EventEscort -> StateT Environment IO ()
+repeatMessage handle escort = undefined
 
 

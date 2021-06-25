@@ -43,3 +43,7 @@ data EventEscort = Escort
   , userMessage :: UserMessage
   }
 
+newtype Environment = Environment
+  { usersRepeat         :: UsersRepeat
+  }
+
