@@ -17,6 +17,8 @@ import BotTypes
   , UserName (..)
   , UserMessage (..)
   , RepeatNumber (..)
+  , stringToValue
+  , valueToString
   )
 
 noneUser = UserName . T.pack $ "none"
@@ -61,11 +63,4 @@ parseMessage msg = case (lower . trim $ msg) of
   "/help"   -> HelpCommand $ Escort noneUser nullMessage
   "/repeat" -> RepeatCommand $ Escort noneUser nullMessage
   otherwise -> Message $ Escort noneUser (UserMessage . stringToValue $ msg)
-
-stringToValue :: String -> A.Value
-stringToValue = A.String . T.pack
-
-valueToString :: A.Value -> Either String String
-valueToString (A.String str)  = Right . T.unpack $ str
-valueToString _               = Left "Value is not (String a)"
 

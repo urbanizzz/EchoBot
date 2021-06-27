@@ -96,10 +96,19 @@ mainCycle handle = forever $ do
     Message escort        -> repeatMessage handle escort
 
 getBotEvent :: Handle -> IO Event
-getBotEvent handle = undefined
+getBotEvent handle = getMessage $ hBotCommand $ handle
+
+getHelpMessage :: Handle -> A.Value
+getHelpMessage handle = textToValue $
+  case cAbout $ hConfig $ handle of
+-- todo log that not help in config
+    Nothing   -> "echobot - simple echo bot.\n/help to get this help\n/repeat to set the number of repetitions"
+    Just msg  -> msg
 
 execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
-execHelpCommand handle event = undefined
+execHelpCommand handle escort = do
+  let helpMsg = getHelpMessage handle
+  lift $ (sendHelp $ hBotCommand $ handle) escort helpMsg
 
 execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execRepeatCommand handle escort = undefined

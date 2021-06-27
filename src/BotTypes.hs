@@ -47,3 +47,17 @@ newtype Environment = Environment
   { usersRepeat         :: UsersRepeat
   }
 
+stringToValue :: String -> A.Value
+stringToValue = A.String . T.pack
+
+textToValue :: T.Text -> A.Value
+textToValue = A.String
+
+valueToString :: A.Value -> Either String String
+valueToString (A.String str)  = Right . T.unpack $ str
+valueToString _               = Left "Value is not (String a)"
+
+valueToText :: A.Value -> Either String T.Text
+valueToText (A.String str)  = Right $ str
+valueToText _               = Left "Value is not (String a)"
+
