@@ -101,19 +101,48 @@ getBotEvent handle = getMessage $ hBotCommand $ handle
 getHelpMessage :: Handle -> A.Value
 getHelpMessage handle = textToValue $
   case cAbout $ hConfig $ handle of
+    Just msg  -> msg
 -- todo log that not help in config
     Nothing   -> "echobot - simple echo bot.\n/help to get this help\n/repeat to set the number of repetitions"
-    Just msg  -> msg
 
 execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execHelpCommand handle escort = do
   let helpMsg = getHelpMessage handle
   lift $ (sendHelp $ hBotCommand $ handle) escort helpMsg
 
+getRepeatQuestion :: Handle -> A.Value
+getRepeatQuestion handle = textToValue $
+  case cRepeatQuestion $ hConfig $ handle of
+    Just msg  -> msg
+-- todo log that not repeatQuestion in config
+    Nothing   -> "Enter the number of repetitions"
+
+getRepeatDefault :: Handle -> RepeatNumber
+getRepeatDefault handle = case cRepeatDefault $ hConfig $ handle of
+  Just rep  -> rep
+-- todo log that not repeatDefault in config
+  Nothing   -> RepeatNumber 3
+
+getUserRepeat :: Handle -> Environment -> UserName -> RepeatNumber
+getUserRepeat handle state name = case M.lookup name (unUsersRepeat . usersRepeat $ state) of
+    Just rep  -> rep
+    Nothing   -> getRepeatDefault handle
+
 execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
-execRepeatCommand handle escort = undefined
+execRepeatCommand handle escort = do
+  state <- get
+  let name = userName escort
+  let repeatCurrent = getUserRepeat handle state name
+  let repeatMsg = getRepeatQuestion handle
+  let repeatMap = unUsersRepeat . usersRepeat $ state
+  repeatNew <- lift $ (getRepeat $ hBotCommand $ handle) escort repeatCurrent repeatMsg
+  let repeatMapNew = M.insert name repeatNew repeatMap
+  put $ state {usersRepeat = UsersRepeat repeatMapNew}
 
 repeatMessage :: Handle -> EventEscort -> StateT Environment IO ()
-repeatMessage handle escort = undefined
-
+repeatMessage handle escort = do
+  state <- get
+  let name = userName escort
+  let repeat = unRepeatNumber . getUserRepeat handle state $ name
+  lift $ replicateM_ repeat $ (sendMessage $ hBotCommand $ handle) escort
 

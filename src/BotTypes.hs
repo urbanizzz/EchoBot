@@ -6,7 +6,6 @@ import qualified Data.Aeson                 as A
 
 import Data.Scientific            (coefficient)
 
-
 data BotType
   = CL
   | TG
