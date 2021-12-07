@@ -3,6 +3,7 @@ module ClBot
   , sendMessage
   , sendHelp
   , getRepeat
+  , trimString
   ) where
 
 import qualified Data.Aeson                 as A
@@ -59,8 +60,10 @@ getRepeat _ repeatOld repeatQuestion = do
         Just rep  -> return $ RepeatNumber rep
 
 parseMessage :: String -> Event
-parseMessage msg = case (lower . trim $ msg) of
+parseMessage msg = case trimString $ msg of
   "/help"   -> HelpCommand $ Escort noneUser nullMessage
   "/repeat" -> RepeatCommand $ Escort noneUser nullMessage
   otherwise -> Message $ Escort noneUser (UserMessage . stringToValue $ msg)
 
+trimString :: String -> String
+trimString = lower . trim

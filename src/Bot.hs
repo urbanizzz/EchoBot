@@ -90,10 +90,13 @@ run handle = do
 mainCycle :: Handle -> StateT Environment IO ()
 mainCycle handle = forever $ do
   event <- lift . getBotEvent $ handle
-  case event of
-    HelpCommand escort    -> execHelpCommand handle escort
-    RepeatCommand escort  -> execRepeatCommand handle escort
-    Message escort        -> repeatMessage handle escort
+  parseEvent event handle
+
+parseEvent :: Event -> (Handle -> StateT Environment IO () )
+parseEvent event = \handle -> case event of
+  HelpCommand escort    -> execHelpCommand handle escort
+  RepeatCommand escort  -> execRepeatCommand handle escort
+  Message escort        -> repeatMessage handle escort
 
 getBotEvent :: Handle -> IO Event
 getBotEvent handle = getMessage $ hBotCommand $ handle
