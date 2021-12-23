@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9622cc648bc8e03208b1177545f02bc1f59a1c711f861ced67c4524bd1823dea
+-- hash: 108991921ba3aa099ad7de4d8ac57af39ed21390db9676a891c3c226800e92b1
 
 name:           echobot
 version:        0.1.0.0
@@ -78,13 +78,16 @@ test-suite echobot-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Tests.TestBot
+      Tests.TestClBot
       Paths_echobot
   hs-source-dirs:
       test
   default-extensions: OverloadedStrings RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , containers

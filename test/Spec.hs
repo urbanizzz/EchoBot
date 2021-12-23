@@ -1,2 +1,7 @@
+import Tests.TestClBot
+import Tests.TestBot
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  Tests.TestClBot.runTests
+  Tests.TestBot.runTests
