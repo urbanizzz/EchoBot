@@ -26,6 +26,16 @@ data LogLevel
   | Error
   deriving (Eq, Ord, Show)
 
+data Config = Config
+  { cPath       :: Maybe FilePath
+  , cLogLevel   :: Maybe LogLevel
+  } deriving (Show)
+
+data Handle = Handle
+  { hConfig     :: Config
+  , hLoggerSet  :: FL.LoggerSet
+  }
+
 instance FromJSON LogLevel where
   parseJSON = withText "FromJSON Logger.LogLevel" $ \t ->
     case t of
@@ -35,11 +45,6 @@ instance FromJSON LogLevel where
       "error"     -> pure Error
       _           -> fail $ "Unknown loglevel: " ++ T.unpack t
 
-data Config = Config
-  { cPath       :: Maybe FilePath
-  , cLogLevel   :: Maybe LogLevel
-  } deriving (Show)
-
 instance Semigroup Config where
   Config p0 l0 <> Config p1 l1 = Config (p0 <|> p1) (l0 <|> l1)
 
@@ -48,14 +53,9 @@ instance Monoid Config where
   Config p0 l0 `mappend` Config p1 l1 = Config (p0 <|> p1) (l0 <|> l1)
 
 instance FromJSON Config where
-  parseJSON = withObject "FromJSON Logget.Config" $ \o -> Config
+  parseJSON = withObject "FromJSON Logger.Config" $ \o -> Config
     <$> o .:? "path"
-    <*> o .:? "loglevel"
-
-data Handle = Handle
-  { hConfig     :: Config
-  , hLoggerSet  :: FL.LoggerSet
-  }
+    <*> o .:? "logLevel"
 
 withHandle :: Config -> (Handle -> IO a) -> IO a
 withHandle config f = bracket
