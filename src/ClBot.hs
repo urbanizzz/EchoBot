@@ -29,6 +29,7 @@ getMessage :: IO Event
 getMessage = do
   msg <- IO.getLine
   let event = parseMessage msg
+  -- debug $ "Gettting event " ++ show event
   return event
 
 -- todo handle of exceptions
@@ -49,8 +50,8 @@ sendHelp _ helpMsg =
 getRepeat :: EventEscort -> RepeatNumber -> A.Value -> IO RepeatNumber
 getRepeat _ repeatOld repeatQuestion = do
   case valueToString repeatQuestion of
-    Left error  -> do
-      IO.putStrLn $ "Error in ClBot.getRepeat: " ++ error
+    Left errorMsg  -> do
+      -- error $ "Error in ClBot.getRepeat: " ++ errorMsg
       return $ repeatOld
     Right msg   -> do
       IO.putStrLn msg

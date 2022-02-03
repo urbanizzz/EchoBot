@@ -84,6 +84,10 @@ newState = Environment $ UsersRepeat M.empty
 
 run :: Handle -> IO ()
 run handle = do
+  let botTypeMsg = maybe "CL" show $ cBotType . hConfig $ handle
+  let debugMsg = logMsg ["Running bot ", botTypeMsg]
+  Logger.debug (hLogger handle) debugMsg
+
   (result, state) <- runStateT (mainCycle $ handle) $ newState
   return ()
 
@@ -99,7 +103,12 @@ parseEvent event = \handle -> case event of
   Message escort        -> repeatMessage handle escort
 
 getBotEvent :: Handle -> IO Event
-getBotEvent handle = getMessage $ hBotCommand $ handle
+getBotEvent handle = do
+  event <- getMessage $ hBotCommand $ handle
+  let eventMsg = show event
+  let debugMsg = logMsg ["Getting event ", eventMsg]
+  Logger.debug (hLogger handle) debugMsg
+  return event
 
 getHelpMessage :: Handle -> A.Value
 getHelpMessage handle = textToValue $

@@ -12,13 +12,6 @@ data BotType
   | VK
   deriving (Eq, Ord, Show)
 
-newtype BotToken      = BotToken      {unBotToken     :: T.Text}
-newtype UserName      = UserName      {unUserName     :: T.Text}
-  deriving (Eq, Ord)
-newtype RepeatNumber  = RepeatNumber  {unRepeatNumber :: Int}
-newtype UsersRepeat   = UsersRepeat   {unUsersRepeat  :: M.Map UserName RepeatNumber}
-newtype UserMessage   = UserMessage   {unUserMessage  :: A.Value}
-
 instance A.FromJSON BotType where
   parseJSON = A.withText "FromJSON Types.BotType" $ \t ->
     case t of
@@ -27,20 +20,47 @@ instance A.FromJSON BotType where
       "tg" -> pure TG
       _    -> fail $ "Unknown type of bot in config: " ++ T.unpack t
 
+newtype BotToken      = BotToken      {unBotToken     :: T.Text}
+
 instance A.FromJSON BotToken where
   parseJSON = A.withText "FromJSON Types.BotToken" $ return . BotToken
+
+newtype UserName      = UserName      {unUserName     :: T.Text}
+  deriving (Eq, Ord)
+
+instance Show UserName where
+  show (UserName name) = "username: " ++ T.unpack name
+
+newtype RepeatNumber  = RepeatNumber  {unRepeatNumber :: Int}
 
 instance A.FromJSON RepeatNumber where
   parseJSON = A.withScientific "FromJSON Types.RepeatNumber" $ return . RepeatNumber . fromInteger . coefficient
 
+newtype UsersRepeat   = UsersRepeat   {unUsersRepeat  :: M.Map UserName RepeatNumber}
+newtype UserMessage   = UserMessage   {unUserMessage  :: A.Value}
+
+instance Show UserMessage where
+  show (UserMessage msg) = "message: " ++ either show show (valueToString msg)
+
 data Event  = HelpCommand EventEscort
             | RepeatCommand EventEscort
             | Message EventEscort
+  deriving Show
 
 data EventEscort = Escort
   { userName    :: UserName
   , userMessage :: UserMessage
   }
+
+instance Show EventEscort where
+  show (Escort name msg) =
+    mconcat
+      [ "Escort {"
+      , show name
+      , ", "
+      , show msg
+      , "}"
+      ]
 
 newtype Environment = Environment
   { usersRepeat         :: UsersRepeat
@@ -59,4 +79,7 @@ valueToString _               = Left "Value is not (String a)"
 valueToText :: A.Value -> Either String T.Text
 valueToText (A.String str)  = Right $ str
 valueToText _               = Left "Value is not (String a)"
+
+logMsg :: [String] -> String
+logMsg = mconcat
 

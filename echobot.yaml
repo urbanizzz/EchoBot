@@ -1,5 +1,6 @@
 logger:
   path: "./echobot.log"
+  # levels: debug, info, warning, error   
   logLevel: debug
 bot:
   # cl - command line, vk - vkontakte, tg - telegram
