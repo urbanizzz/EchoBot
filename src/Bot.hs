@@ -118,17 +118,28 @@ getBotEvent handle = do
     srcMsg = "Bot.getBotEvent: "
     sysEscort = systemEscort $ hBotCommand $ handle
 
-getHelpMessage :: Handle -> A.Value
-getHelpMessage handle = textToValue $
+getHelpMessage :: Handle -> Either String A.Value
+getHelpMessage handle = textToValue <$>
   case cAbout $ hConfig $ handle of
-    Just msg  -> msg
--- todo log that not help in config
-    Nothing   -> "echobot - simple echo bot.\n/help to get this help\n/repeat to set the number of repetitions"
+    Just msg  -> Right msg
+    Nothing   -> Left "No about message in config."
 
 execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execHelpCommand handle escort = do
   let helpMsg = getHelpMessage handle
-  lift $ (sendHelp $ hBotCommand $ handle) escort helpMsg
+  case helpMsg of
+    Left errorMsg -> do
+      lift $ Logger.info logger $ logMsg [srcMsg, errorMsg]
+      lift $ helpSender sysEscort "INFO. No help message. See log for details"
+    Right msg -> do
+      lift $ Logger.debug logger $ logMsg [srcMsg, "Print help: ", either id id $ valueToString msg]
+      lift $ helpSender escort msg
+  where
+    helpSender = sendHelp $ hBotCommand $ handle
+    logger = hLogger handle
+    srcMsg = "Bot.execHelpCommand: "
+    sysEscort = systemEscort $ hBotCommand $ handle
+    
 
 getRepeatQuestion :: Handle -> A.Value
 getRepeatQuestion handle = textToValue $

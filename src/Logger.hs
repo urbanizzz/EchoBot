@@ -68,10 +68,15 @@ withHandle config f = bracket
 
 log :: FL.ToLogStr s => Handle -> LogLevel -> s -> IO ()
 log Handle {..} lev x
-  | lev >= loglevel = FL.pushLogStrLn hLoggerSet $ FL.toLogStr x
+  | lev >= loglevel = FL.pushLogStrLn hLoggerSet $ logMessage
   | otherwise       = return ()
   where
     loglevel = fromMaybe Debug (cLogLevel hConfig)
+    logMessage = mconcat
+      [ FL.toLogStr . show $ lev
+      , FL.toLogStr (": " :: String)
+      , FL.toLogStr x
+      ]
 
 debug, info, warning, error :: FL.ToLogStr s => Handle -> s -> IO ()
 debug   h = log h Debug
