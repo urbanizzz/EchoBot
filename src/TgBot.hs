@@ -3,6 +3,7 @@ module TgBot
   , sendMessage
   , sendHelp
   , getRepeat
+  , systemEscort
   ) where
 
 import qualified Data.Aeson                 as A
@@ -16,7 +17,10 @@ import BotTypes
   , RepeatNumber (..)
   )
 
-getMessage :: IO Event
+systemEscort :: EventEscort
+systemEscort = undefined
+
+getMessage :: IO (Either String Event)
 getMessage = undefined
 
 sendMessage :: EventEscort -> IO ()

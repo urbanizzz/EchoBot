@@ -3,6 +3,7 @@ module ClBot
   , sendMessage
   , sendHelp
   , getRepeat
+  , systemEscort
   , trimString
   ) where
 
@@ -25,12 +26,15 @@ import BotTypes
 noneUser = UserName . T.pack $ "none"
 nullMessage = UserMessage .stringToValue $ ""
 
-getMessage :: IO Event
+systemEscort :: EventEscort
+systemEscort = Escort noneUser nullMessage
+
+getMessage :: IO (Either String Event)
 getMessage = do
   msg <- IO.getLine
   let event = parseMessage msg
-  -- debug $ "Gettting event " ++ show event
-  return event
+  -- Left "error" don't exist since CL is test mode
+  return $ Right event
 
 -- todo handle of exceptions
 sendMessage :: EventEscort -> IO ()

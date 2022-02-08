@@ -60,11 +60,13 @@ data Handle = Handle
   }
 
 data BotCommand = BotCommand
-  { getMessage    :: IO Event
+  { getMessage    :: IO (Either String Event)
   , sendMessage   :: EventEscort -> IO ()
   , sendHelp      :: EventEscort -> A.Value -> IO ()
   , getRepeat     :: EventEscort -> RepeatNumber -> A.Value -> IO RepeatNumber
+  , systemEscort  :: EventEscort
   }
+
 
 withHandle :: Config -> Logger.Handle -> (Handle -> IO a) -> IO a
 withHandle config logger f = f $ Handle config logger (selectBotCommandsHandle botType)
@@ -74,10 +76,9 @@ withHandle config logger f = f $ Handle config logger (selectBotCommandsHandle b
 
 selectBotCommandsHandle :: BotType -> BotCommand
 selectBotCommandsHandle botType = case botType of
-  CL -> BotCommand Cl.getMessage Cl.sendMessage Cl.sendHelp Cl.getRepeat
-  TG -> BotCommand Tg.getMessage Tg.sendMessage Tg.sendHelp Tg.getRepeat
-  VK -> BotCommand Vk.getMessage Vk.sendMessage Vk.sendHelp Vk.getRepeat
-
+  CL -> BotCommand Cl.getMessage Cl.sendMessage Cl.sendHelp Cl.getRepeat Cl.systemEscort
+  TG -> BotCommand Tg.getMessage Tg.sendMessage Tg.sendHelp Tg.getRepeat Tg.systemEscort
+  VK -> BotCommand Vk.getMessage Vk.sendMessage Vk.sendHelp Vk.getRepeat Vk.systemEscort
 
 newState :: Environment
 newState = Environment $ UsersRepeat M.empty
@@ -104,11 +105,18 @@ parseEvent event = \handle -> case event of
 
 getBotEvent :: Handle -> IO Event
 getBotEvent handle = do
-  event <- getMessage $ hBotCommand $ handle
-  let eventMsg = show event
-  let debugMsg = logMsg ["Getting event ", eventMsg]
-  Logger.debug (hLogger handle) debugMsg
-  return event
+  eitherEvent <- getMessage $ hBotCommand $ handle
+  case eitherEvent of
+    Left errorMsg -> do
+      Logger.error logger $ logMsg [srcMsg, errorMsg]
+      return $ errorEvent sysEscort "ERROR!!! See log for details"
+    Right event -> do
+      Logger.debug logger $ logMsg [srcMsg, "Getting event ", show event]
+      return event
+  where 
+    logger = hLogger handle
+    srcMsg = "Bot.getBotEvent: "
+    sysEscort = systemEscort $ hBotCommand $ handle
 
 getHelpMessage :: Handle -> A.Value
 getHelpMessage handle = textToValue $
@@ -157,4 +165,10 @@ repeatMessage handle escort = do
   let name = userName escort
   let repeat = unRepeatNumber . getUserRepeat handle state $ name
   lift $ replicateM_ repeat $ (sendMessage $ hBotCommand $ handle) escort
+
+errorEvent :: EventEscort -> String -> Event
+errorEvent escort msg = Message $ Escort name message
+  where
+    name = userName escort
+    message = UserMessage . stringToValue $ msg
 
