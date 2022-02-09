@@ -101,7 +101,7 @@ parseEvent :: Event -> (Handle -> StateT Environment IO () )
 parseEvent event = \handle -> case event of
   HelpCommand escort    -> execHelpCommand handle escort
   RepeatCommand escort  -> execRepeatCommand handle escort
-  Message escort        -> repeatMessage handle escort
+  Message escort        -> echoMessage handle escort
 
 getBotEvent :: Handle -> IO Event
 getBotEvent handle = do
@@ -117,12 +117,6 @@ getBotEvent handle = do
     logger = hLogger handle
     srcMsg = "Bot.getBotEvent: "
     sysEscort = systemEscort $ hBotCommand $ handle
-
-getHelpMessage :: Handle -> Either String A.Value
-getHelpMessage handle = textToValue <$>
-  case cAbout $ hConfig $ handle of
-    Just msg  -> Right msg
-    Nothing   -> Left "No about message in config."
 
 execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execHelpCommand handle escort = do
@@ -140,6 +134,22 @@ execHelpCommand handle escort = do
     srcMsg = "Bot.execHelpCommand: "
     sysEscort = systemEscort $ hBotCommand $ handle
     
+getHelpMessage :: Handle -> Either String A.Value
+getHelpMessage handle = textToValue <$>
+  case cAbout $ hConfig $ handle of
+    Just msg  -> Right msg
+    Nothing   -> Left "No about message in config."
+
+execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
+execRepeatCommand handle escort = do
+  state <- get
+  let name = userName escort
+  let repeatCurrent = getUserRepeat handle state name
+  let repeatMsg = getRepeatQuestion handle
+  let repeatMap = unUsersRepeat . usersRepeat $ state
+  repeatNew <- lift $ (getRepeat $ hBotCommand $ handle) escort repeatCurrent repeatMsg
+  let repeatMapNew = M.insert name repeatNew repeatMap
+  put $ state {usersRepeat = UsersRepeat repeatMapNew}
 
 getRepeatQuestion :: Handle -> A.Value
 getRepeatQuestion handle = textToValue $
@@ -159,19 +169,8 @@ getUserRepeat handle state name = case M.lookup name (unUsersRepeat . usersRepea
     Just rep  -> rep
     Nothing   -> getRepeatDefault handle
 
-execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
-execRepeatCommand handle escort = do
-  state <- get
-  let name = userName escort
-  let repeatCurrent = getUserRepeat handle state name
-  let repeatMsg = getRepeatQuestion handle
-  let repeatMap = unUsersRepeat . usersRepeat $ state
-  repeatNew <- lift $ (getRepeat $ hBotCommand $ handle) escort repeatCurrent repeatMsg
-  let repeatMapNew = M.insert name repeatNew repeatMap
-  put $ state {usersRepeat = UsersRepeat repeatMapNew}
-
-repeatMessage :: Handle -> EventEscort -> StateT Environment IO ()
-repeatMessage handle escort = do
+echoMessage :: Handle -> EventEscort -> StateT Environment IO ()
+echoMessage handle escort = do
   state <- get
   let name = userName escort
   let repeat = unRepeatNumber . getUserRepeat handle state $ name
