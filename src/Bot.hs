@@ -141,24 +141,16 @@ getBotEvent handle = do
 execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execHelpCommand handle escort = do
   let helpMsg = getHelpMessage handle
-  case helpMsg of
-    Left errorMsg -> do
-      lift $ Logger.info logger $ logMsg [srcMsg, errorMsg]
-      lift $ helpSender sysEscort "INFO. No help message. See log for details"
-    Right msg -> do
-      lift $ Logger.debug logger $ logMsg [srcMsg, "Print help: ", either id id $ valueToString msg]
-      lift $ helpSender escort msg
+  lift $ Logger.debug logger $ logMsg [srcMsg, "Print help: ", either id id $ valueToString helpMsg]
+  lift $ helpSender escort helpMsg
   where
     helpSender = sendHelp $ hBotCommand $ handle
     logger = hLogger handle
     srcMsg = "Bot.execHelpCommand: "
-    sysEscort = systemEscort $ hBotCommand $ handle
     
-getHelpMessage :: Handle -> Either String A.Value
-getHelpMessage handle = textToValue <$>
-  case cAbout $ hConfig $ handle of
-    Just msg  -> Right msg
-    Nothing   -> Left "No about message in config."
+getHelpMessage :: Handle -> A.Value
+getHelpMessage handle = textToValue $
+  maybe "No about message in config." id (cAbout $ hConfig $ handle)
 
 execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execRepeatCommand handle escort = do
