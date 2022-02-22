@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module BotTypes where
 
 import qualified Data.Map.Lazy              as M
@@ -5,12 +7,13 @@ import qualified Data.Text                  as T
 import qualified Data.Aeson                 as A 
 
 import Data.Scientific            (coefficient)
+import Data.Data                  (Data (..))
 
 data BotType
   = CL
   | TG
   | VK
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Data)
 
 instance A.FromJSON BotType where
   parseJSON = A.withText "FromJSON Types.BotType" $ \t ->
@@ -21,6 +24,7 @@ instance A.FromJSON BotType where
       _    -> fail $ "Unknown type of bot in config: " ++ T.unpack t
 
 newtype BotToken      = BotToken      {unBotToken     :: T.Text}
+  deriving (Data)
 
 instance A.FromJSON BotToken where
   parseJSON = A.withText "FromJSON Types.BotToken" $ return . BotToken
@@ -32,6 +36,7 @@ instance Show UserName where
   show (UserName name) = "username: " ++ T.unpack name
 
 newtype RepeatNumber  = RepeatNumber  {unRepeatNumber :: Int}
+  deriving (Data)
 
 instance A.FromJSON RepeatNumber where
   parseJSON = A.withScientific "FromJSON Types.RepeatNumber" $ return . RepeatNumber . fromInteger . coefficient

@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Bot
   ( Config (..)
   , Handle (..)
@@ -17,6 +19,7 @@ import qualified VkBot                      as Vk
 import Control.Applicative        (Alternative (..))
 import Control.Monad.State
 import BotTypes
+import Data.Data                  (Data(..), toConstr, constrFields, gmapQ)
 
 data Config = Config
   { cBotType                :: Maybe BotType
@@ -27,6 +30,7 @@ data Config = Config
   , cAbout                  :: Maybe T.Text
   , cUnknownCommandMessage  :: Maybe T.Text
   }
+  deriving (Data)
 
 instance Semigroup Config where
   (<>) = mappend
@@ -85,12 +89,28 @@ newState = Environment $ UsersRepeat M.empty
 
 run :: Handle -> IO ()
 run handle = do
-  let botTypeMsg = maybe "CL" show $ cBotType . hConfig $ handle
-  let debugMsg = logMsg ["Running bot ", botTypeMsg]
-  Logger.debug (hLogger handle) debugMsg
+  case (checkBotConfig . hConfig $ handle) of
+    Right () -> do
+      Logger.debug (hLogger handle) debugMsg
+      (result, state) <- runStateT (mainCycle $ handle) $ newState
+      return ()
+      where
+        botTypeMsg = maybe "CL" show $ cBotType . hConfig $ handle
+        debugMsg = logMsg ["Running bot ", botTypeMsg]
+    Left errMsg -> Logger.error (hLogger handle) errorMsg
+      where errorMsg = logMsg [ "Config error. ", tail errMsg, " missing."]
 
-  (result, state) <- runStateT (mainCycle $ handle) $ newState
-  return ()
+checkBotConfig :: Config -> Either String ()
+checkBotConfig = myfold . listToCheck
+  where
+    myfold = foldr (\x z -> check x >>= \_ -> z) $ Right ()
+    fields = constrFields . toConstr
+    constrs = gmapQ toConstr
+    listToCheck = \x -> zip (constrs x) (fields x)
+    check (con, msg) = if con == nothing
+      then Left msg
+      else Right ()
+    nothing = toConstr (Nothing :: Maybe ())
 
 mainCycle :: Handle -> StateT Environment IO ()
 mainCycle handle = forever $ do
