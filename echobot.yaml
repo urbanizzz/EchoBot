@@ -8,6 +8,6 @@ bot:
   botToken: "none"
   repeatDefault: 3
   repeatMaxNumber: 5
-  repeatQuestion: "Enter the number of repetitions"
+  repeatQuestion: "Enter the number of repetitions (1-5)"
   about: "echobot - simple echo bot.\n/help to get this help\n/repeat to set the number of repetitions"
   unknownCommandMessage: "Unknown command: enter /help to get help"

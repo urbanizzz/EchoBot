@@ -157,10 +157,14 @@ execRepeatCommand handle escort = do
   state <- get
   let name = userName escort
   let repeatCurrent = getUserRepeat handle state name
+  let repeatMax = maybe (RepeatNumber 5) id (cRepeatMaxNumber $ hConfig $ handle)
   let repeatMap = unUsersRepeat . usersRepeat $ state
   lift $ Logger.debug logger $ logMsg [srcMsg, "Get repeat count."]
   -- todo logging that getRepeat don't work, see logNoGetRepeat
-  repeatNew <- lift $ either (return repeatCurrent) id <$> repeatGetter
+  repeatNew <- lift $ either 
+    (return repeatCurrent) 
+    (\n -> if n > repeatMax || n < RepeatNumber 1 then repeatCurrent else n) 
+    <$> repeatGetter
   let repeatMapNew = (M.insert name repeatNew repeatMap) :: M.Map UserName RepeatNumber
   put $ state {usersRepeat = UsersRepeat repeatMapNew}
   where

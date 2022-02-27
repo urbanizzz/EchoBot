@@ -36,7 +36,7 @@ instance Show UserName where
   show (UserName name) = "username: " ++ T.unpack name
 
 newtype RepeatNumber  = RepeatNumber  {unRepeatNumber :: Int}
-  deriving (Data)
+  deriving (Eq, Ord, Data)
 
 instance A.FromJSON RepeatNumber where
   parseJSON = A.withScientific "FromJSON Types.RepeatNumber" $ return . RepeatNumber . fromInteger . coefficient
