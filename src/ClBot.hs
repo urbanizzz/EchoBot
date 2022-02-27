@@ -10,8 +10,8 @@ module ClBot
 import qualified Data.Aeson                 as A
 import qualified Data.Text                  as T
 import qualified System.IO                  as IO
-import qualified Text.Read                  as Read
 
+import Text.Read                            (readEither) 
 import Data.List.Extra                      (lower, trim)
 import BotTypes
   ( Event (..)
@@ -51,18 +51,16 @@ sendHelp _ helpMsg =
     Left error  -> IO.putStrLn $ "Error in ClBot.sendHelp: " ++ error
 
 -- todo handle of exceptions
-getRepeat :: EventEscort -> RepeatNumber -> A.Value -> IO RepeatNumber
-getRepeat _ repeatOld repeatQuestion = do
+getRepeat :: EventEscort -> A.Value -> IO (Either String RepeatNumber)
+getRepeat _ repeatQuestion = do
   case valueToString repeatQuestion of
-    Left errorMsg  -> do
-      -- error $ "Error in ClBot.getRepeat: " ++ errorMsg
-      return $ repeatOld
-    Right msg   -> do
+    Left error -> return . Left $ "Error in ClBot.getRepeat: " ++ error
+    Right msg  -> do
       IO.putStrLn msg
       val <- IO.getLine
-      case (Read.readMaybe val :: Maybe Int) of
-        Nothing   -> return $ repeatOld
-        Just rep  -> return $ RepeatNumber rep
+      case (readEither val :: Either String Int) of
+        Left error -> return . Left $ "Error in ClBot.getRepeat: " ++ error
+        Right rep  -> return . Right $ RepeatNumber rep
 
 parseMessage :: String -> Event
 parseMessage msg = case trimString $ msg of

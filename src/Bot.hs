@@ -67,7 +67,7 @@ data BotCommand = BotCommand
   { getMessage    :: IO (Either String Event)
   , sendMessage   :: EventEscort -> IO ()
   , sendHelp      :: EventEscort -> A.Value -> IO ()
-  , getRepeat     :: EventEscort -> RepeatNumber -> A.Value -> IO RepeatNumber
+  , getRepeat     :: EventEscort -> A.Value -> IO (Either String RepeatNumber)
   , systemEscort  :: EventEscort
   }
 
@@ -150,36 +150,37 @@ execHelpCommand handle escort = do
     
 getHelpMessage :: Handle -> A.Value
 getHelpMessage handle = textToValue $
-  maybe "No about message in config." id (cAbout $ hConfig $ handle)
+  maybe "No About in config." id (cAbout $ hConfig $ handle)
 
 execRepeatCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execRepeatCommand handle escort = do
   state <- get
   let name = userName escort
   let repeatCurrent = getUserRepeat handle state name
-  let repeatMsg = getRepeatQuestion handle
   let repeatMap = unUsersRepeat . usersRepeat $ state
-  repeatNew <- lift $ (getRepeat $ hBotCommand $ handle) escort repeatCurrent repeatMsg
-  let repeatMapNew = M.insert name repeatNew repeatMap
+  lift $ Logger.debug logger $ logMsg [srcMsg, "Get repeat count."]
+  -- todo logging that getRepeat don't work, see logNoGetRepeat
+  repeatNew <- lift $ either (return repeatCurrent) id <$> repeatGetter
+  let repeatMapNew = (M.insert name repeatNew repeatMap) :: M.Map UserName RepeatNumber
   put $ state {usersRepeat = UsersRepeat repeatMapNew}
+  where
+    repeatGetter = (getRepeat $ hBotCommand $ handle) escort (getRepeatQuestion handle)
+    logger = hLogger handle
+    srcMsg = "Bot.execRepeatCommand: "
+{-    logNoGetRepeat repeatCurrent error = do
+      Logger.warning logger $ logMsg [srcMsg, error]
+      return repeatCurrent -}
 
 getRepeatQuestion :: Handle -> A.Value
 getRepeatQuestion handle = textToValue $
-  case cRepeatQuestion $ hConfig $ handle of
-    Just msg  -> msg
--- todo log that not repeatQuestion in config
-    Nothing   -> "Enter the number of repetitions"
+  maybe "No RepeatQuestion in config" id (cRepeatQuestion $ hConfig $ handle)
 
 getRepeatDefault :: Handle -> RepeatNumber
-getRepeatDefault handle = case cRepeatDefault $ hConfig $ handle of
-  Just rep  -> rep
--- todo log that not repeatDefault in config
-  Nothing   -> RepeatNumber 3
+getRepeatDefault handle = maybe (RepeatNumber 3) id (cRepeatDefault $ hConfig $ handle)
 
 getUserRepeat :: Handle -> Environment -> UserName -> RepeatNumber
-getUserRepeat handle state name = case M.lookup name (unUsersRepeat . usersRepeat $ state) of
-    Just rep  -> rep
-    Nothing   -> getRepeatDefault handle
+getUserRepeat handle state name = maybe (getRepeatDefault handle) id lookupRepeat
+  where lookupRepeat = M.lookup name (unUsersRepeat . usersRepeat $ state)
 
 echoMessage :: Handle -> EventEscort -> StateT Environment IO ()
 echoMessage handle escort = do

@@ -29,6 +29,6 @@ sendMessage escort = undefined
 sendHelp :: EventEscort -> A.Value -> IO ()
 sendHelp escort helpMsg = undefined
 
-getRepeat :: EventEscort -> RepeatNumber -> A.Value -> IO RepeatNumber
-getRepeat escort repeatOld repeatQuestion = undefined
+getRepeat :: EventEscort -> A.Value -> IO (Either String RepeatNumber)
+getRepeat escort repeatQuestion = undefined
 
