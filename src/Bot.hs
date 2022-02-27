@@ -141,7 +141,7 @@ getBotEvent handle = do
 execHelpCommand :: Handle -> EventEscort -> StateT Environment IO ()
 execHelpCommand handle escort = do
   let helpMsg = getHelpMessage handle
-  lift $ Logger.debug logger $ logMsg [srcMsg, "Print help: ", either id id $ valueToString helpMsg]
+  lift $ Logger.debug logger $ logMsg [srcMsg, "Printing About"]
   lift $ helpSender escort helpMsg
   where
     helpSender = sendHelp $ hBotCommand $ handle
@@ -187,7 +187,11 @@ echoMessage handle escort = do
   state <- get
   let name = userName escort
   let repeat = unRepeatNumber . getUserRepeat handle state $ name
+  lift $ Logger.debug logger $ logMsg [srcMsg, "Repeating message ", show repeat, " times"]
   lift $ replicateM_ repeat $ (sendMessage $ hBotCommand $ handle) escort
+  where 
+    logger = hLogger handle
+    srcMsg = "Bot.echoMessage: "
 
 errorEvent :: EventEscort -> String -> Event
 errorEvent escort msg = Message $ Escort name message
